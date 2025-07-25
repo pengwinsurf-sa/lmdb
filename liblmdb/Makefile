@@ -22,12 +22,13 @@ CC	= gcc
 AR	= ar
 W	= -W -Wall -Wno-unused-parameter -Wbad-function-cast -Wuninitialized
 THREADS = -pthread
-OPT = -O2 -g
+OPT = -O0 -g
 CFLAGS	= $(THREADS) $(OPT) $(W) $(XCFLAGS)
+COV_FLAGS=-fprofile-arcs -ftest-coverage
 LDLIBS	= 
 SOLIBS	= 
 SOEXT	= .so
-prefix	= /usr/local
+prefix	= $(dir $(realpath $(lastword $(MAKEFILE_LIST))))/install
 exec_prefix = $(prefix)
 bindir = $(exec_prefix)/bin
 libdir = $(exec_prefix)/lib
@@ -66,32 +67,32 @@ liblmdb.a:	mdb.o midl.o
 
 liblmdb$(SOEXT):	mdb.lo midl.lo
 #	$(CC) $(LDFLAGS) -pthread -shared -Wl,-Bsymbolic -o $@ mdb.o midl.o $(SOLIBS)
-	$(CC) $(LDFLAGS) -pthread -shared -o $@ mdb.lo midl.lo $(SOLIBS)
+	$(CC) $(LDFLAGS) -pthread $(COV_FLAGS)-shared -o $@ mdb.lo midl.lo $(SOLIBS)
 
-mdb_stat: mdb_stat.o liblmdb.a
-mdb_copy: mdb_copy.o liblmdb.a
-mdb_dump: mdb_dump.o liblmdb.a
-mdb_load: mdb_load.o liblmdb.a
-mdb_drop: mdb_drop.o liblmdb.a
-mtest:    mtest.o    liblmdb.a
-mtest2:	mtest2.o liblmdb.a
-mtest3:	mtest3.o liblmdb.a
-mtest4:	mtest4.o liblmdb.a
-mtest5:	mtest5.o liblmdb.a
-mtest6:	mtest6.o liblmdb.a
-mplay:	mplay.o liblmdb.a
+mdb_stat: mdb_stat.o liblmdb.so
+mdb_copy: mdb_copy.o liblmdb.so
+mdb_dump: mdb_dump.o liblmdb.so
+mdb_load: mdb_load.o liblmdb.so
+mdb_drop: mdb_drop.o liblmdb.so
+mtest:    mtest.o    liblmdb.so
+mtest2:	mtest2.o liblmdb.so
+mtest3:	mtest3.o liblmdb.so
+mtest4:	mtest4.o liblmdb.so
+mtest5:	mtest5.o liblmdb.so
+mtest6:	mtest6.o liblmdb.so
+mplay:	mplay.o liblmdb.so
 
 mdb.o: mdb.c lmdb.h midl.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c mdb.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(COV_FLAGS) -c mdb.c
 
 midl.o: midl.c midl.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c midl.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(COV_FLAGS) -c midl.c
 
 mdb.lo: mdb.c lmdb.h midl.h
-	$(CC) $(CFLAGS) -fPIC $(CPPFLAGS) -c mdb.c -o $@
+	$(CC) $(CFLAGS) -fPIC $(CPPFLAGS) $(COV_FLAGS) -c mdb.c -o $@
 
 midl.lo: midl.c midl.h
-	$(CC) $(CFLAGS) -fPIC $(CPPFLAGS) -c midl.c -o $@
+	$(CC) $(CFLAGS) -fPIC $(CPPFLAGS) $(COV_FLAGS) -c midl.c -o $@
 
 %:	%.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
@@ -99,7 +100,6 @@ midl.lo: midl.c midl.h
 %.o:	%.c lmdb.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
-COV_FLAGS=-fprofile-arcs -ftest-coverage
 COV_OBJS=xmdb.o xmidl.o
 
 coverage: xmtest
