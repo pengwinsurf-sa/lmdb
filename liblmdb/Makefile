@@ -67,7 +67,7 @@ liblmdb.a:	mdb.o midl.o
 
 liblmdb$(SOEXT):	mdb.lo midl.lo
 #	$(CC) $(LDFLAGS) -pthread -shared -Wl,-Bsymbolic -o $@ mdb.o midl.o $(SOLIBS)
-	$(CC) $(LDFLAGS) -pthread $(COV_FLAGS)-shared -o $@ mdb.lo midl.lo $(SOLIBS)
+	$(CC) $(LDFLAGS) -pthread $(COV_FLAGS) -shared -o $@ mdb.lo midl.lo $(SOLIBS)
 
 mdb_stat: mdb_stat.o liblmdb.so
 mdb_copy: mdb_copy.o liblmdb.so
