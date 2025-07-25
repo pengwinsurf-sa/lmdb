@@ -32,3 +32,14 @@ jobs:
       run: (cd liblmdb && make test)
       env:
         LD_LIBRARY_PATH: ${{ github.workspace }}/liblmdb/install/lib
+
+    - name: Generate Docs
+      run: doxygen $GITHUB_WORKSPACE/liblmdb/Doxyfile
+
+    - name: 'ApiCov'
+      uses: codesa-ai/ApiCov@v0.3.1-pre
+      with:
+        root_path: ${{ github.workspace }}/liblmdb
+        api_key: ${{ secrets.APICOV_KEY }}
+        install_path: $GITHUB_WORKSPACE/liblmdb/install
+        doxygen_path: $GITHUB_WORKSPACE/liblmdb/xml        
