@@ -1410,6 +1410,7 @@ struct MDB_txn {
 #define MDB_TXN_DIRTY		0x04		/**< must write, even if dirty list is empty */
 #define MDB_TXN_SPILLS		0x08		/**< txn or a parent has spilled pages */
 #define MDB_TXN_HAS_CHILD	0x10		/**< txn has an #MDB_txn.%mt_child */
+#define MDB_TXN_KEEP		0x40		/**< keep txn on commit failure */
 	/** most operations on the txn are currently illegal */
 #define MDB_TXN_BLOCKED		(MDB_TXN_FINISHED|MDB_TXN_ERROR|MDB_TXN_HAS_CHILD)
 /** @} */
@@ -3998,7 +3999,7 @@ done:
 static int ESECT mdb_env_share_locks(MDB_env *env, int *excl);
 
 static int
-_mdb_txn_commit(MDB_txn *txn)
+_mdb_txn_commit(MDB_txn *txn, int flag)
 {
 	int		rc;
 	unsigned int i, end_mode;
@@ -4011,7 +4012,7 @@ _mdb_txn_commit(MDB_txn *txn)
 	end_mode = MDB_END_EMPTY_COMMIT|MDB_END_UPDATE|MDB_END_SLOT|MDB_END_FREE;
 
 	if (txn->mt_child) {
-		rc = _mdb_txn_commit(txn->mt_child);
+		rc = _mdb_txn_commit(txn->mt_child, 0);
 		if (rc)
 			goto fail;
 	}
@@ -4234,7 +4235,8 @@ done:
 	return MDB_SUCCESS;
 
 fail:
-	_mdb_txn_abort(txn);
+	if (!F_ISSET(flag, MDB_TXN_KEEP))
+		_mdb_txn_abort(txn);
 	return rc;
 }
 
@@ -4242,7 +4244,14 @@ int
 mdb_txn_commit(MDB_txn *txn)
 {
 	MDB_TRACE(("%p", txn));
-	return _mdb_txn_commit(txn);
+	return _mdb_txn_commit(txn, 0);
+}
+
+int
+mdb_txn_commit2(MDB_txn *txn)
+{
+	MDB_TRACE(("%p", txn));
+	return _mdb_txn_commit(txn, MDB_TXN_KEEP);
 }
 
 /** Read the environment parameters of a DB environment before

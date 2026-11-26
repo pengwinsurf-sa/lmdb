@@ -1051,6 +1051,23 @@ mdb_size_t mdb_txn_id(MDB_txn *txn);
 	 */
 int  mdb_txn_commit(MDB_txn *txn);
 
+	/** @brief Commit all the operations of a transaction into the database.
+	 *
+	 * The same as #mdb_txn_commit() if it succeeds. On failure, the
+	 * transaction handle is not freed and must be freed using
+	 * #mdb_txn_abort().
+	 * @param[in] txn A transaction handle returned by #mdb_txn_begin()
+	 * @return A non-zero error value on failure and 0 on success. Some possible
+	 * errors are:
+	 * <ul>
+	 *	<li>EINVAL - an invalid parameter was specified.
+	 *	<li>ENOSPC - no more disk space.
+	 *	<li>EIO - a low-level I/O error occurred while writing.
+	 *	<li>ENOMEM - out of memory.
+	 * </ul>
+	 */
+int  mdb_txn_commit2(MDB_txn *txn);
+
 	/** @brief Abandon all the operations of the transaction instead of saving them.
 	 *
 	 * The transaction handle is freed. It and its cursors must not be used
